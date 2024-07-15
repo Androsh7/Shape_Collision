@@ -237,7 +237,7 @@ vector<line> createrect(point startpoint, float length, float height) {
 }
 
 struct collisionReport {
-    bool collided;
+    bool collided = false;
     time_t timestamp;
     int entity1;
     int entity2;
@@ -311,28 +311,35 @@ int checkcollision(polygon poly1, polygon poly2) {
     report.collided = true;
 
     // writes collision lines to report
-    report.collided_line1.clear();
     for (int i = 0; i < line1collision.size(); i++) {
         report.collided_line1.push_back(poly1.boundaries.at(line1collision.at(i)));
-    }
-    report.collided_line2.clear();
-    for (int i = 0; i < line2collision.size(); i++) {
         report.collided_line2.push_back(poly2.boundaries.at(line1collision.at(2)));
     }
 
-    // checks to see if points match
-    report.intersection_point.clear();
-    if (comparepoint(poly1.boundaries.at(line1).p1, poly2.boundaries.at(line1).p2) ||
-        comparepoint(poly1.boundaries.at(line1).p1, poly2.boundaries.at(line1).p1)) {
-        report.intersection_point.push_back(poly1.boundaries.at(line1).p1);
-    }
-    if (comparepoint(poly1.boundaries.at(line1).p2, poly2.boundaries.at(line1).p1) ||
-        comparepoint(poly1.boundaries.at(line1).p2, poly2.boundaries.at(line1).p2)) {
-        report.intersection_point.push_back(poly2.boundaries.at(line1).p2);
-    }
+    // finds intersection points
+    for (int i = 0; i < line1collision.size(); i++) {
 
-    // uses findIntersect function to return the point intersection
-    report.intersection_point.push_back(findIntersect(poly1.boundaries.at(line1 - 1), poly2.boundaries.at(line2)));
+        // check for duplicate points which can cause unexpected behavior
+        if (comparepoint(poly1.boundaries.at(line1collision.at(i)).p1, poly2.boundaries.at(line2collision.at(i)).p2) ||
+            comparepoint(poly1.boundaries.at(line1collision.at(i)).p1, poly2.boundaries.at(line2collision.at(i)).p1)) {
+            report.intersection_point.push_back(poly1.boundaries.at(line1collision.at(i)).p1);
+        }
+        else if (comparepoint(poly1.boundaries.at(line1collision.at(i)).p2, poly2.boundaries.at(line2collision.at(i)).p1) ||
+            comparepoint(poly1.boundaries.at(line1collision.at(i)).p2, poly2.boundaries.at(line2collision.at(i)).p2)) {
+            report.intersection_point.push_back(poly2.boundaries.at(line1collision.at(i)).p2);
+        }
+
+        // determines if lines are parallel and overlap
+        else if (orientation(poly1.boundaries.at(line1collision.at(i)).p1, poly1.boundaries.at(line1collision.at(i)).p2, poly2.boundaries.at(line2collision.at(i)).p1) == 1 &&
+                 orientation(poly1.boundaries.at(line1collision.at(i)).p1, poly1.boundaries.at(line1collision.at(i)).p2, poly2.boundaries.at(line2collision.at(i)).p2) == 1) {
+            // report if lines are parallel and overlap
+        }
+
+        // calculate the line intersection using the findIntersect function
+        else {
+            report.intersection_point.push_back(findIntersect(poly1.boundaries.at(line1 - 1), poly2.boundaries.at(line2)));
+        }
+    }
 }
 
 int main() {
